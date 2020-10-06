@@ -9,7 +9,7 @@ from aiohttp.http_websocket import WSMessage
 from aiohttp.web import WSMsgType
 from decouple import config
 
-from webhooks import ping_discord_log, send_appeal_log, send_ban_log, send_log_message
+from discord_pubsub.webhooks import ping_discord_log, send_appeal_log, send_ban_log, send_log_message
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

@@ -39,6 +39,12 @@ async def send_ban_log(message: dict) -> None:
             inline=True,
         )
         embed.add_field(name=f'{ban_type.capitalize()} by', value=message.get('created_by'), inline=True)
+        if len(message.get("args")) > 1:
+            embed.add_field(
+                name=f'Ban reason',
+                value=' '.join(message.get("args")[1:]),  # Skip username
+                inline=False,
+            )
         await webhook.send(embed=embed)
     return
 
