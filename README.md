@@ -1,6 +1,6 @@
 # discord-pubsub
 A client that makes it easier to have transparency of what happens in a twitch chat by 
-posting ban, unban and appeal logs with Discord live.
+posting ban, unban and appeal logs to Discord - live.
 
  - Open connection to the Twitch PubSub WebSocket
  - Handles reconnect signals and required ping
