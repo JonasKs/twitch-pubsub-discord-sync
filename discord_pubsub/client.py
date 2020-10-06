@@ -174,5 +174,6 @@ async def handler() -> None:
             logger.warning('Everything shut down.')
             await send_log_message('Bot shut down.')
 
+
 while True:
     asyncio.run(handler())
