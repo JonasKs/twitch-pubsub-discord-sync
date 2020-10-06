@@ -11,4 +11,4 @@ COPY . /source
 RUN poetry config virtualenvs.create false \
   && poetry install --no-interaction --no-ansi --no-dev
 
-ENTRYPOINT ["python", "client.py"]
+ENTRYPOINT ["python", "discord_pubsub/client.py"]
