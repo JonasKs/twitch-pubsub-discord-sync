@@ -13,7 +13,7 @@ This is a very simple project written in an evening so it may contain some bugs.
 Hosted on a gcloud f1 free micro tier instance. 
 
 1. Create a `.env` based on `.env.example`. You can get the auth code by using the `code` flow:
-https://id.twitch.tv/oauth2/authorize?client_id=<clientID>&redirect_uri=<redirect_url>&response_type=code&scope=channel:moderate
+`https://id.twitch.tv/oauth2/authorize?client_id=<clientID>&redirect_uri=<redirect_url>&response_type=code&scope=channel:moderate`
 
 2. Build image locally with `Docker` or `Podman`
 ```bash
