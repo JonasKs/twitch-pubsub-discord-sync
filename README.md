@@ -9,6 +9,9 @@ posting ban, unban and appeal logs to Discord - live.
 
 This is a very simple project written in an evening so it may contain some bugs. 
 
+# Example
+![Farmers Market Finder Demo](example.gif)
+
 # Hosting and deployment
 Hosted on a gcloud f1 free micro tier instance. 
 
