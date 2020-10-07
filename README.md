@@ -10,7 +10,7 @@ posting ban, unban and appeal logs to Discord - live.
 This is a very simple project written in an evening so it may contain some bugs. 
 
 # Example
-![Farmers Market Finder Demo](example.gif)
+[![Farmers Market Finder Demo](example.gif)](https://raw.githubusercontent.com/JonasKs/twitch-pubsub-discord-sync/main/example.gif)
 
 # Hosting and deployment
 Hosted on a gcloud f1 free micro tier instance. 
