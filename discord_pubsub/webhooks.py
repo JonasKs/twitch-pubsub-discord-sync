@@ -107,25 +107,29 @@ async def send_join_part_message(joins: list, parts: list) -> None:
     logger.info('Sending join/part message. Join %s, parts %s', joins, parts)
     # Each value can be 1024 chars, each embed can be 2048
     async with ClientSession() as session:
-        if joins and joins <= 240:
+        if joins and len(joins) <= 240:
+            logger.info('Joins limit accepted')
             card_chunks = [joins[x:x+80] for x in range(0, len(joins), 80)]  # 80 names pr embed
             for card in card_chunks:
+                logger.info('Card %s', card)
                 join = Webhook.from_url(config('JOIN_PART_WEBHOOK_URL'), adapter=AsyncWebhookAdapter(session))
                 join_chunks = [card[x:x+40] for x in range(0, len(card), 40)]  # max 40 names pr. value
                 embed_join = Embed(title='Joins', color=0x00FF00)
                 for chunk in join_chunks:
-                    embed_join.add_field(name=f'Joins', value=','.join(chunk), inline=False)
+                    embed_join.add_field(name=f'Joins', value=f"``` {','.join(chunk)} ```", inline=False)
                     logger.info('Join chunk: %s', chunk)
                 await join.send(embed=embed_join)
 
-        if parts and joins <= 240:
-            card_chunks = [joins[x:x+80] for x in range(0, len(joins), 80)]  # 80 names pr embed
+        if parts and len(joins) <= 240:
+            logger.info('Parts limit accepted')
+            card_chunks = [parts[x:x+80] for x in range(0, len(parts), 80)]  # 80 names pr embed
             for card in card_chunks:
+                logger.info('Card %s', card)
                 part = Webhook.from_url(config('JOIN_PART_WEBHOOK_URL'), adapter=AsyncWebhookAdapter(session))
-                embed_part = Embed(title='Parts (First 80 people)', color=0xFF0000)
+                embed_part = Embed(title='Parts', color=0xFF0000)
                 part_chunks = [card[x:x+40] for x in range(0, len(card), 40)]
                 for chunk in part_chunks:
-                    embed_part.add_field(name=f'Parts', value=','.join(chunk), inline=False)
+                    embed_part.add_field(name=f'Parts', value=f"``` {','.join(chunk)} ```", inline=False)
                     logger.info('Part chunk: %s', chunk)
                 await part.send(embed=embed_part)
     return
