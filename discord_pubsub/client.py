@@ -3,12 +3,12 @@ import json
 import logging
 import random
 import uuid
-
 from aiohttp import ClientSession, ClientWebSocketResponse
 from aiohttp.http_websocket import WSMessage
 from aiohttp.web import WSMsgType
 from decouple import config
 
+from discord_pubsub.join_parts import compare_join_parts
 from discord_pubsub.webhooks import ping_discord_log, send_appeal_log, send_ban_log, send_log_message
 
 logging.basicConfig(level=logging.INFO)
@@ -80,23 +80,22 @@ async def subscribe_to_messages(websocket: ClientWebSocketResponse) -> None:
     :return: None, forever living task
     """
     async for message in websocket:
-        if isinstance(message, WSMessage):
-            if message.type == WSMsgType.text:
-                message_json = message.json()
-                logger.info('> Message from server received: %s', message_json)
-                content = message_json.get('data', {}).get('message')
-                if message_json.get('type') == 'RECONNECT':
-                    # Reconnect, just shut down.
-                    await send_log_message('Twitch reconnect signal')
-                    await websocket.close()
-                if content:
-                    inner_message = json.loads(content).get('data')
-                    message_type = inner_message.get('moderation_action')
-                    if message_type in ['ban', 'unban']:
-                        await send_ban_log(message=inner_message)
-                    elif message_type in ['APPROVE_UNBAN_REQUEST', 'DENY_UNBAN_REQUEST']:
-                        await send_appeal_log(message=inner_message)
-                    logger.info('> MESSAGE: %s', inner_message)
+        if isinstance(message, WSMessage) and message.type == WSMsgType.text:
+            message_json = message.json()
+            logger.info('> Message from server received: %s', message_json)
+            content = message_json.get('data', {}).get('message')
+            if message_json.get('type') == 'RECONNECT':
+                # Reconnect, just shut down.
+                await send_log_message('Twitch reconnect signal')
+                await websocket.close()
+            if content:
+                inner_message = json.loads(content).get('data')
+                message_type = inner_message.get('moderation_action')
+                if message_type in ['ban', 'unban']:
+                    await send_ban_log(message=inner_message)
+                elif message_type in ['APPROVE_UNBAN_REQUEST', 'DENY_UNBAN_REQUEST']:
+                    await send_appeal_log(message=inner_message)
+                logger.info('> MESSAGE: %s', inner_message)
 
 
 async def ping(websocket: ClientWebSocketResponse) -> None:
@@ -149,11 +148,12 @@ async def handler() -> None:
             ping_discord_task = asyncio.create_task(ping_discord_log())
             ping_task = asyncio.create_task(ping(websocket=ws))  # Pings at least once every 5 min
             refresh_token_task = asyncio.create_task(refresh_access_token())  # Refreshes access_token every 3h
+            join_part_task = asyncio.create_task(compare_join_parts())  # Compares joins and parts
 
             # This function returns two variables, a list of `done` and a list of `pending` tasks.
             # We can ask it to return when all tasks are completed, first task is completed or on first exception
             done, pending = await asyncio.wait(
-                [read_message_task, ping_task, refresh_token_task, ping_discord_task],
+                [read_message_task, ping_task, refresh_token_task, ping_discord_task, join_part_task],
                 return_when=asyncio.FIRST_COMPLETED,
             )
             # When this line of line is hit, we know that one of the tasks has been completed.

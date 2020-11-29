@@ -95,3 +95,78 @@ async def ping_discord_log():
     while True:
         await send_log_message(message='PING')
         await asyncio.sleep(86400)  # Sleep 24h
+
+
+async def send_join_part_message(joins: list, parts: list) -> None:
+    """
+    Log who's joining the chat and who's left chat.
+    :param joins: People who joined
+    :param parts: People who left
+    """
+
+    logger.info('Sending join/part message. Join %s, parts %s', joins, parts)
+    # Each value can be 1024 chars, each embed can be 2048
+    async with ClientSession() as session:
+        if joins:
+            join = Webhook.from_url(config('JOIN_PART_WEBHOOK_URL'), adapter=AsyncWebhookAdapter(session))
+            join_chunks = [joins[x:x+40] for x in range(0, len(joins), 40)]
+            embed_join = Embed(title='Joins (40 names per card)', color=0x00FF00)
+            for chunk in join_chunks:
+                embed_join.add_field(name=f'Joins', value=','.join(chunk), inline=False)
+                logger.info('Join chunk: %s', chunk)
+            await join.send(embed=embed_join)
+
+        if parts:
+            part = Webhook.from_url(config('JOIN_PART_WEBHOOK_URL'), adapter=AsyncWebhookAdapter(session))
+            embed_part = Embed(title='Parts (40 names per card)', color=0xFF0000)
+            part_chunks = [parts[x:x+40] for x in range(0, len(parts), 40)]
+            for chunk in part_chunks:
+                embed_part.add_field(name=f'Parts', value=','.join(chunk), inline=False)
+                logger.info('Part chunk: %s', chunk)
+            await part.send(embed=embed_part)
+    return
+
+
+async def rules() -> None:
+    """
+    Rules. Only used once, but I'll keep it in git since it's annoying to format if Paul ever want them changed.
+    """
+    async with ClientSession() as session:
+        webhook = Webhook.from_url(config('RULES_WEBOOK_URL'), adapter=AsyncWebhookAdapter(session))
+        embed = Embed(title="Welcome!", description="Please take a minute to read through these rules.")
+        embed.set_author(
+            name="TheRunningManZ",
+            url="https://twitch.tv/therunningmanz",
+            icon_url="https://static-cdn.jtvnw.net/jtv_user_pictures/3ce6ba9a-43cf-4611-8025-315a841cbeca-profile_image-300x300.png",
+        )
+        embed.set_thumbnail(url="https://legal-term.com/wp-content/uploads/2020/02/Laws-of-Achievement.jpg")
+        embed.add_field(
+            name="Rules",
+            value="**1)** No discussion around Racism/sexism/homophobia/politics/Religion/Gun Laws please  \n"
+            "**2)** Do not use words such as cancer, aids, autistic etc "
+            "to describe something about a game or anything else. We don't do that here.  \n"
+            "**3)** No self promotion or promoting friends. "
+            "Sharing your videos/highlights in the your clips section is obviously fine!  \n"
+            "**4)** Please don't ask for the server details that TRMZ is playing on. "
+            "Giving out server details spoils the stream for all viewers.  \n"
+            "**5)** Please refrain from discussing glitches or exploits in the game and explaining how to do them.  \n"
+            "**6)** Any stream sniping or mentioning that you/your friends have stream sniped TRMZ, "
+            "or are trying to, will result in a ban. Even joking about it!  \n"
+            "**7)** A mods decision is final, persistent arguing over a decision will result in a permanent ban  \n"
+            "**8)** Follow the [Discord Community Guidelines](https://discord.com/guidelines) "
+            "and [Terms Of Service](https://discord.com/terms).",
+            inline=False,
+        )
+        embed.add_field(
+            name='DayZ server',
+            value='**1)** Server rules be found [here](https://www.spaggie.com/server-rules/).  \n'
+            '**2)** Please keep any discussion related to the servers in '
+            '<#525680843406966799> and <#758383957657780285>  \n'
+            '**3)** If you have met a cheater, experience lag or need assistance '
+            'from an admin [use this form](https://www.spaggie.com/complaint/)',
+        )
+        embed.set_footer(
+            text="If you have any questions or concerns, please do not hesitate contacting the moderators."
+        )
+        await webhook.send(embed=embed)
+
