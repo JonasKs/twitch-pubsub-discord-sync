@@ -107,23 +107,27 @@ async def send_join_part_message(joins: list, parts: list) -> None:
     logger.info('Sending join/part message. Join %s, parts %s', joins, parts)
     # Each value can be 1024 chars, each embed can be 2048
     async with ClientSession() as session:
-        if joins:
-            join = Webhook.from_url(config('JOIN_PART_WEBHOOK_URL'), adapter=AsyncWebhookAdapter(session))
-            join_chunks = [joins[x:x+40] for x in range(0, len(joins), 40)]
-            embed_join = Embed(title='Joins (40 names per card)', color=0x00FF00)
-            for chunk in join_chunks:
-                embed_join.add_field(name=f'Joins', value=','.join(chunk), inline=False)
-                logger.info('Join chunk: %s', chunk)
-            await join.send(embed=embed_join)
+        if joins and joins <= 240:
+            card_chunks = [joins[x:x+80] for x in range(0, len(joins), 80)]  # 80 names pr embed
+            for card in card_chunks:
+                join = Webhook.from_url(config('JOIN_PART_WEBHOOK_URL'), adapter=AsyncWebhookAdapter(session))
+                join_chunks = [card[x:x+40] for x in range(0, len(card), 40)]  # max 40 names pr. value
+                embed_join = Embed(title='Joins', color=0x00FF00)
+                for chunk in join_chunks:
+                    embed_join.add_field(name=f'Joins', value=','.join(chunk), inline=False)
+                    logger.info('Join chunk: %s', chunk)
+                await join.send(embed=embed_join)
 
-        if parts:
-            part = Webhook.from_url(config('JOIN_PART_WEBHOOK_URL'), adapter=AsyncWebhookAdapter(session))
-            embed_part = Embed(title='Parts (40 names per card)', color=0xFF0000)
-            part_chunks = [parts[x:x+40] for x in range(0, len(parts), 40)]
-            for chunk in part_chunks:
-                embed_part.add_field(name=f'Parts', value=','.join(chunk), inline=False)
-                logger.info('Part chunk: %s', chunk)
-            await part.send(embed=embed_part)
+        if parts and joins <= 240:
+            card_chunks = [joins[x:x+80] for x in range(0, len(joins), 80)]  # 80 names pr embed
+            for card in card_chunks:
+                part = Webhook.from_url(config('JOIN_PART_WEBHOOK_URL'), adapter=AsyncWebhookAdapter(session))
+                embed_part = Embed(title='Parts (First 80 people)', color=0xFF0000)
+                part_chunks = [card[x:x+40] for x in range(0, len(card), 40)]
+                for chunk in part_chunks:
+                    embed_part.add_field(name=f'Parts', value=','.join(chunk), inline=False)
+                    logger.info('Part chunk: %s', chunk)
+                await part.send(embed=embed_part)
     return
 
 
